@@ -477,14 +477,75 @@
         font-size: 0.8rem;
         font-weight: 800;
       }
+      /* Lock Screen Modal */
+      .lock-modal {
+        position: fixed;
+        inset: 0;
+        background: #11141a;
+        z-index: 5000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+
+      .lock-card {
+        background: #1a1e27;
+        border: 1px solid #323949;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 400px;
+        padding: 28px 22px;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+      }
+
+      .lock-input {
+        width: 100%;
+        background: #11141a;
+        border: 1px solid #323949;
+        border-radius: 8px;
+        padding: 12px 14px;
+        color: #fff;
+        font-size: 1.1rem;
+        margin-top: 16px;
+        text-align: center;
+        letter-spacing: 3px;
+        outline: none;
+        box-sizing: border-box;
+      }
+
+      .lock-input:focus {
+        border-color: #e5a93c;
+      }
     </style>
   </head>
   <body>
-    <div class="container">
+    <!-- Full-screen Lock Overlay -->
+    <div id="admin-lock-screen" class="lock-modal" style="display: none;">
+      <div class="lock-card">
+        <div style="font-size: 2.6rem; margin-bottom: 10px;">🔐</div>
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: #fff;">ระบบจัดการเมนูร้านอาหาร</h2>
+        <p style="font-size: 0.85rem; color: #9ca3af; margin-top: 6px;">กรุณากรอกรหัสผ่านเพื่อเข้าใช้งานหน้าจัดการ</p>
+        <form id="admin-lock-form" onsubmit="return false;">
+          <input type="password" id="admin-lock-pwd" class="lock-input" placeholder="รหัสผ่าน (ค่าเริ่มต้น 1234)" autocomplete="current-password" />
+          <div id="admin-lock-error" style="color: #fca5a5; font-size: 0.85rem; font-weight: 600; margin-top: 8px; display: none;"></div>
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <a href="index.html" class="btn btn-secondary" style="flex: 1; text-align: center; text-decoration: none;">กลับหน้าเมนู</a>
+            <button type="submit" class="btn btn-primary" style="flex: 1;">เข้าสู่ระบบ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="container" id="admin-main-container">
       <!-- Top Navigation -->
       <div class="top-nav">
         <a href="index.html">⬅️ ดูหน้าเมนูลูกค้า / View Customer Menu</a>
-        <span style="font-size: 0.85rem; color: #a7f3d0; font-weight: 600;">✨ โหมดง่าย: ไม่ต้องใช้ Token (Zero Token)</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 0.85rem; color: #a7f3d0; font-weight: 600;">✨ เข้าสู่ระบบแล้ว</span>
+          <button id="btn-admin-logout" class="btn btn-outline btn-sm" style="color: #fca5a5; border-color: rgba(239, 68, 68, 0.3);">🔒 ออกจากระบบ</button>
+        </div>
       </div>
 
       <!-- Unsaved Changes Alert Bar -->
@@ -626,7 +687,20 @@
             <li>กดปุ่มสีเขียว <strong>Commit changes</strong></li>
             <li>รอประมาณ 1-2 นาที เมื่อรีเฟรชหน้าเว็บลูกค้า รูปเมนูจะแสดงขึ้นมาทันที!</li>
           </ol>
+      <!-- Password Setting Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">4. ตั้งค่ารหัสผ่านเข้าหน้าจัดการ (Admin Password)</h2>
+            <p class="panel-desc">คุณสามารถเปลี่ยนรหัสผ่านเพื่อความปลอดภัยของร้านคุณได้ที่นี่ (ค่าเริ่มต้นคือ 1234)</p>
+          </div>
         </div>
+
+        <div style="display: flex; gap: 10px; max-width: 480px; flex-wrap: wrap;">
+          <input type="text" id="input-new-password" placeholder="ตั้งรหัสผ่านใหม่ (เช่น 5678)" style="flex: 1; min-width: 220px;" />
+          <button id="btn-save-new-password" class="btn btn-secondary">บันทึกรหัสผ่านใหม่</button>
+        </div>
+        <div id="pwd-change-status" class="status-banner"></div>
       </div>
     </div>
 
@@ -1281,7 +1355,84 @@
           });
         }
 
+        // --- ADMIN AUTHENTICATION & LOCK SCREEN ---
+        var DEFAULT_PASSWORD = "1234";
+        var lockScreen = document.getElementById("admin-lock-screen");
+        var lockForm = document.getElementById("admin-lock-form");
+        var lockPwd = document.getElementById("admin-lock-pwd");
+        var lockError = document.getElementById("admin-lock-error");
+        var btnLogout = document.getElementById("btn-admin-logout");
+        var inputNewPwd = document.getElementById("input-new-password");
+        var btnSaveNewPwd = document.getElementById("btn-save-new-password");
+        var pwdChangeStatus = document.getElementById("pwd-change-status");
+
+        function checkAuth() {
+          var isAuth = sessionStorage.getItem("gm_admin_auth") === "true";
+          if (!isAuth) {
+            if (lockScreen) lockScreen.style.display = "flex";
+            if (lockPwd) {
+              lockPwd.value = "";
+              setTimeout(function() { lockPwd.focus(); }, 100);
+            }
+          } else {
+            if (lockScreen) lockScreen.style.display = "none";
+          }
+        }
+
+        if (lockForm) {
+          lockForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+            var entered = lockPwd ? lockPwd.value.trim() : "";
+            var currentPwd = localStorage.getItem("gm_admin_password") || DEFAULT_PASSWORD;
+
+            if (entered === currentPwd) {
+              sessionStorage.setItem("gm_admin_auth", "true");
+              if (lockScreen) lockScreen.style.display = "none";
+            } else {
+              if (lockError) {
+                lockError.textContent = "❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+                lockError.style.display = "block";
+              }
+              if (lockPwd) {
+                lockPwd.style.borderColor = "#ef4444";
+                lockPwd.focus();
+                lockPwd.select();
+              }
+            }
+          });
+        }
+
+        if (btnLogout) {
+          btnLogout.addEventListener("click", function() {
+            sessionStorage.removeItem("gm_admin_auth");
+            window.location.href = "index.html";
+          });
+        }
+
+        // Change Password
+        if (btnSaveNewPwd && inputNewPwd) {
+          btnSaveNewPwd.addEventListener("click", function() {
+            var newPwd = inputNewPwd.value.trim();
+            if (!newPwd) {
+              showBanner(pwdChangeStatus, "warning", "กรุณากรอกรหัสผ่านใหม่ที่ต้องการตั้ง");
+              return;
+            }
+            if (newPwd.length < 4) {
+              showBanner(pwdChangeStatus, "warning", "รหัสผ่านควรมีความยาวอย่างน้อย 4 ตัวอักษร");
+              return;
+            }
+
+            localStorage.setItem("gm_admin_password", newPwd);
+            inputNewPwd.value = "";
+            showBanner(pwdChangeStatus, "success", "✅ บันทึกรหัสผ่านใหม่เรียบร้อยแล้ว! (รหัสผ่านของคุณคือ: " + newPwd + ")");
+            setTimeout(function() {
+              hideBanner(pwdChangeStatus);
+            }, 6000);
+          });
+        }
+
         // --- INIT ---
+        checkAuth();
         loadImages();
       })();
     </script>

@@ -291,6 +291,126 @@
         color: #9ca3af;
         text-decoration: underline;
       }
+
+      /* Password Modal & Toast */
+      .pwd-toast {
+        position: fixed;
+        bottom: 70px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(26, 30, 39, 0.95);
+        color: #e5a93c;
+        border: 1px solid rgba(229, 169, 60, 0.4);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        z-index: 1500;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+
+      .pwd-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+
+      .pwd-modal-content {
+        background: #1a1e27;
+        border: 1px solid #323949;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 380px;
+        padding: 24px 20px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        animation: popIn 0.2s ease-out;
+      }
+
+      @keyframes popIn {
+        from { transform: scale(0.92); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+      }
+
+      .pwd-icon {
+        font-size: 2.2rem;
+        margin-bottom: 8px;
+      }
+
+      .pwd-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .pwd-desc {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        margin-top: 4px;
+        line-height: 1.4;
+      }
+
+      .pwd-input {
+        width: 100%;
+        background: #11141a;
+        border: 1px solid #323949;
+        border-radius: 8px;
+        padding: 12px 14px;
+        color: #fff;
+        font-size: 1.1rem;
+        margin-top: 16px;
+        text-align: center;
+        letter-spacing: 3px;
+        outline: none;
+        box-sizing: border-box;
+      }
+
+      .pwd-input:focus {
+        border-color: #e5a93c;
+      }
+
+      .pwd-error-msg {
+        color: #fca5a5;
+        font-size: 0.8rem;
+        margin-top: 8px;
+        font-weight: 600;
+      }
+
+      .pwd-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .pwd-btn {
+        flex: 1;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+      }
+
+      .pwd-btn-submit {
+        background: #e5a93c;
+        color: #11141a;
+      }
+
+      .pwd-btn-cancel {
+        background: #2a303d;
+        color: #d1d5db;
+        border: 1px solid #323949;
+      }
     </style>
   </head>
   <body>
@@ -317,8 +437,28 @@
     </main>
 
     <footer id="site-footer">
-      <a href="admin.html" class="footer-admin-link">⚙️ Menu Admin / ระบบจัดการเมนู</a>
+      <a href="admin.html" class="footer-admin-link" id="btn-admin-gate">⚙️ Menu Admin / ระบบจัดการเมนู</a>
     </footer>
+
+    <!-- Password Modal -->
+    <div id="pwd-modal" class="pwd-modal" role="dialog" aria-modal="true" style="display: none;">
+      <div class="pwd-modal-content">
+        <div class="pwd-icon">🔐</div>
+        <div class="pwd-title">ระบบจัดการเมนูร้านอาหาร</div>
+        <div class="pwd-desc">กรุณากรอกรหัสผ่านเพื่อเข้าสู่ระบบจัดการเมนู</div>
+        <form id="pwd-form" onsubmit="return false;">
+          <input type="password" id="admin-pwd-input" class="pwd-input" placeholder="รหัสผ่าน (ค่าเริ่มต้น 1234)" autocomplete="current-password" />
+          <div id="pwd-error" class="pwd-error-msg" style="display: none;"></div>
+          <div class="pwd-actions">
+            <button type="button" id="pwd-cancel-btn" class="pwd-btn pwd-btn-cancel">ยกเลิก</button>
+            <button type="submit" id="pwd-submit-btn" class="pwd-btn pwd-btn-submit">เข้าสู่ระบบ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tap Toast Indicator -->
+    <div id="pwd-toast" class="pwd-toast" style="display: none;"></div>
 
     <!-- Fullscreen Pinch-Zoom Modal -->
     <div id="modal-viewer" role="dialog" aria-modal="true" aria-label="Menu Fullscreen Viewer">
@@ -807,6 +947,117 @@
             closeModal();
           }
         });
+
+        // --- 5-TAP ADMIN GATEWAY & PASSWORD PROTECTION ---
+        var DEFAULT_ADMIN_PASSWORD = "1234";
+        var adminGateBtn = document.getElementById("btn-admin-gate");
+        var pwdModal = document.getElementById("pwd-modal");
+        var pwdToast = document.getElementById("pwd-toast");
+        var pwdForm = document.getElementById("pwd-form");
+        var pwdInput = document.getElementById("admin-pwd-input");
+        var pwdError = document.getElementById("pwd-error");
+        var pwdCancelBtn = document.getElementById("pwd-cancel-btn");
+
+        var tapCount = 0;
+        var tapTimer = null;
+        var toastTimer = null;
+
+        function showToast(msg) {
+          if (!pwdToast) return;
+          pwdToast.textContent = msg;
+          pwdToast.style.display = "block";
+          clearTimeout(toastTimer);
+          toastTimer = setTimeout(function() {
+            pwdToast.style.display = "none";
+          }, 2200);
+        }
+
+        function handleAdminGateClick(e) {
+          if (e) e.preventDefault();
+          tapCount++;
+          clearTimeout(tapTimer);
+          
+          if (tapCount < 5) {
+            var remaining = 5 - tapCount;
+            showToast("กดอีก " + remaining + " ครั้งเพื่อใส่รหัสผ่าน (" + tapCount + "/5)");
+            tapTimer = setTimeout(function() {
+              tapCount = 0;
+              if (pwdToast) pwdToast.style.display = "none";
+            }, 3500);
+          } else {
+            // 5 taps reached!
+            tapCount = 0;
+            if (pwdToast) pwdToast.style.display = "none";
+            openPwdModal();
+          }
+        }
+
+        if (adminGateBtn) {
+          adminGateBtn.addEventListener("click", handleAdminGateClick);
+        }
+
+        // Also intercept any other admin link if clicked (e.g. status-actions admin link)
+        var otherAdminLinks = document.querySelectorAll('a[href="admin.html"]');
+        otherAdminLinks.forEach(function(link) {
+          link.addEventListener("click", handleAdminGateClick);
+        });
+
+        function openPwdModal() {
+          if (!pwdModal) return;
+          pwdModal.style.display = "flex";
+          if (pwdError) {
+            pwdError.style.display = "none";
+            pwdError.textContent = "";
+          }
+          if (pwdInput) {
+            pwdInput.value = "";
+            pwdInput.style.borderColor = "";
+            setTimeout(function() { pwdInput.focus(); }, 100);
+          }
+        }
+
+        function closePwdModal() {
+          if (pwdModal) pwdModal.style.display = "none";
+          if (pwdInput) pwdInput.value = "";
+        }
+
+        if (pwdCancelBtn) {
+          pwdCancelBtn.addEventListener("click", closePwdModal);
+        }
+
+        if (pwdModal) {
+          pwdModal.addEventListener("click", function(e) {
+            if (e.target === pwdModal) closePwdModal();
+          });
+        }
+
+        function verifyPassword() {
+          var entered = pwdInput ? pwdInput.value.trim() : "";
+          var actualPassword = localStorage.getItem("gm_admin_password") || DEFAULT_ADMIN_PASSWORD;
+
+          if (entered === actualPassword) {
+            sessionStorage.setItem("gm_admin_auth", "true");
+            closePwdModal();
+            window.location.href = "admin.html";
+          } else {
+            if (pwdError) {
+              pwdError.textContent = "❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
+              pwdError.style.display = "block";
+            }
+            if (pwdInput) {
+              pwdInput.style.borderColor = "#ef4444";
+              pwdInput.focus();
+              pwdInput.select();
+            }
+          }
+        }
+
+        if (pwdForm) {
+          pwdForm.addEventListener("submit", function(e) {
+            e.preventDefault();
+            verifyPassword();
+          });
+        }
       })();
     </script>
   </body>
