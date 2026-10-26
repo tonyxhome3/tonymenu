@@ -581,17 +581,17 @@
           </div>
         </div>
 
-        <div class="step-card">
+        <div class="step-card" style="border-color: rgba(229, 169, 60, 0.4); background: rgba(229, 169, 60, 0.05);">
           <div class="step-header">
-            <span class="step-number">1</span>
-            <span>ดาวน์โหลดไฟล์ menu.json ที่จัดลำดับแล้ว</span>
+            <span class="step-number" style="background: #10b981; color: #fff;">★</span>
+            <span style="color: #fde68a;">วิธีที่ 1 (ง่ายที่สุดและแนะนำ): ดาวน์โหลด menu.json ไฟล์เดียวจบ</span>
           </div>
-          <p style="font-size: 0.85rem; color: var(--text-muted);">
-            กดปุ่มด้านล่างเพื่อบันทึกไฟล์ <code>menu.json</code> นำไปวางแทนที่ไฟล์เดิมใน GitHub Repository
+          <p style="font-size: 0.85rem; color: #d1d5db; line-height: 1.5;">
+            ดาวน์โหลดไฟล์ <code>menu.json</code> ที่มีรูปภาพของคุณรวมอยู่ข้างในเรียบร้อย จากนั้นนำไฟล์นี้<strong>เพียงไฟล์เดียว</strong>ไปอัปโหลดทับที่หน้าแรกของ GitHub Repository เมนูอาหารของคุณจะแสดงผลบนมือถือของลูกค้าได้ทันที 100%!
           </p>
           <div>
-            <button id="btn-download-json" class="btn-secondary btn-sm">
-              📥 ดาวน์โหลด menu.json / Download menu.json
+            <button id="btn-download-json-embedded" class="btn-primary btn-sm" style="font-weight: 700;">
+              📥 ดาวน์โหลด menu.json (ไฟล์เดียวพร้อมรูปภาพ / All-in-One)
             </button>
           </div>
         </div>
@@ -599,14 +599,32 @@
         <div class="step-card">
           <div class="step-header">
             <span class="step-number">2</span>
-            <span>วิธีอัปโหลดไฟล์ขึ้น GitHub ด้วยการลากวาง (ไม่ต้องใช้ Token)</span>
+            <span>วิธีที่ 2: บันทึกแยกไฟล์รูปภาพลงโฟลเดอร์ menu/</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            หากคุณต้องการเก็บไฟล์รูปภาพแยกไว้ในโฟลเดอร์ <code>menu/</code> บน GitHub:
+          </p>
+          <div class="btn-row">
+            <button id="btn-download-images" class="btn-secondary btn-sm">
+              📥 ดาวน์โหลดไฟล์รูปภาพทั้งหมด (.jpg)
+            </button>
+            <button id="btn-download-json" class="btn-outline btn-sm">
+              📥 ดาวน์โหลด menu.json (แบบอ้างอิงไฟล์)
+            </button>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-number">3</span>
+            <span>วิธีนำไฟล์ขึ้น GitHub Pages (ไม่ต้องใช้ Token)</span>
           </div>
           <ol style="margin-left: 20px; font-size: 0.85rem; color: #d1d5db; line-height: 1.6;">
             <li>เปิดหน้า Repository ของคุณในเว็บไซต์ <strong>GitHub.com</strong></li>
             <li>กดปุ่ม <strong>Add file</strong> → เลือก <strong>Upload files</strong></li>
-            <li>ลากไฟล์รูปภาพทั้งหมดใส่ในโฟลเดอร์ <code>menu/</code> และลากไฟล์ <code>menu.json</code> วางในหน้าหลัก</li>
-            <li>กดปุ่มสีเขียว <strong>Commit changes</strong> ด้านล่างสุด</li>
-            <li>เสร็จเรียบร้อย! เมนูจะอัปเดตบน GitHub Pages ให้อัตโนมัติ</li>
+            <li>ลากไฟล์ <code>menu.json</code> ที่เพิ่งดาวน์โหลดมาวางลงในหน้าเว็บ GitHub</li>
+            <li>กดปุ่มสีเขียว <strong>Commit changes</strong></li>
+            <li>รอประมาณ 1-2 นาที เมื่อรีเฟรชหน้าเว็บลูกค้า รูปเมนูจะแสดงขึ้นมาทันที!</li>
           </ol>
         </div>
       </div>
@@ -631,6 +649,8 @@
         var unsavedBar = document.getElementById("unsaved-bar");
         var btnAddSample = document.getElementById("btn-add-sample");
         var btnDownloadJson = document.getElementById("btn-download-json");
+        var btnDownloadJsonEmbedded = document.getElementById("btn-download-json-embedded");
+        var btnDownloadImages = document.getElementById("btn-download-images");
 
         // --- INDEXEDDB HELPER FOR ROBUST LOCAL STORAGE ---
         function getDB() {
@@ -999,23 +1019,63 @@
           }, 200);
         });
 
-        // --- DOWNLOAD MENU.JSON ---
-        btnDownloadJson.addEventListener("click", function() {
-          var imagesPaths = currentImages.map(function(item, idx) {
-            if (item.indexOf("data:") === 0) {
-              return "menu/page-" + (idx + 1) + ".jpg";
+        // --- DOWNLOAD MENU.JSON (ALL-IN-ONE EMBEDDED) ---
+        if (btnDownloadJsonEmbedded) {
+          btnDownloadJsonEmbedded.addEventListener("click", function() {
+            if (currentImages.length === 0) {
+              alert("ยังไม่มีรูปภาพในระบบ กรุณาอัปโหลดรูปภาพก่อนดาวน์โหลดครับ");
+              return;
             }
-            return item;
+            var jsonContent = JSON.stringify({ images: currentImages }, null, 2) + "\n";
+            var blob = new Blob([jsonContent], { type: "application/json" });
+            var link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "menu.json";
+            link.click();
+            URL.revokeObjectURL(link.href);
+            alert("ดาวน์โหลดไฟล์ menu.json สำเร็จแล้ว!\nนำไฟล์นี้ไปอัปโหลดทับที่หน้าแรกของ GitHub Repository ได้เลยครับ");
           });
+        }
 
-          var jsonContent = JSON.stringify({ images: imagesPaths }, null, 2) + "\n";
-          var blob = new Blob([jsonContent], { type: "application/json" });
-          var link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = "menu.json";
-          link.click();
-          URL.revokeObjectURL(link.href);
-        });
+        // --- DOWNLOAD INDIVIDUAL IMAGES ---
+        if (btnDownloadImages) {
+          btnDownloadImages.addEventListener("click", function() {
+            if (currentImages.length === 0) {
+              alert("ยังไม่มีรูปภาพในระบบ");
+              return;
+            }
+            currentImages.forEach(function(item, idx) {
+              setTimeout(function() {
+                var a = document.createElement("a");
+                a.href = item;
+                a.download = "menu-page-" + (idx + 1) + ".jpg";
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+              }, idx * 300);
+            });
+          });
+        }
+
+        // --- DOWNLOAD MENU.JSON (RELATIVE PATHS) ---
+        if (btnDownloadJson) {
+          btnDownloadJson.addEventListener("click", function() {
+            var imagesPaths = currentImages.map(function(item, idx) {
+              if (item.indexOf("data:") === 0) {
+                return "menu/menu-page-" + (idx + 1) + ".jpg";
+              }
+              return item;
+            });
+
+            var jsonContent = JSON.stringify({ images: imagesPaths }, null, 2) + "\n";
+            var blob = new Blob([jsonContent], { type: "application/json" });
+            var link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "menu.json";
+            link.click();
+            URL.revokeObjectURL(link.href);
+          });
+        }
 
         // --- DELETE IMAGE ---
         function deleteImage(index) {
