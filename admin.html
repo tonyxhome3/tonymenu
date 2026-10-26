@@ -522,7 +522,7 @@
   </head>
   <body>
     <!-- Full-screen Lock Overlay -->
-    <div id="admin-lock-screen" class="lock-modal" style="display: none;">
+    <div id="admin-lock-screen" class="lock-modal">
       <div class="lock-card">
         <div style="font-size: 2.6rem; margin-bottom: 10px;">🔐</div>
         <h2 style="font-size: 1.3rem; font-weight: 700; color: #fff;">ระบบจัดการเมนูร้านอาหาร</h2>
@@ -1408,6 +1408,13 @@
             window.location.href = "index.html";
           });
         }
+
+        var returnLinks = document.querySelectorAll('a[href="index.html"]');
+        returnLinks.forEach(function(link) {
+          link.addEventListener("click", function() {
+            sessionStorage.removeItem("gm_admin_auth");
+          });
+        });
 
         // Change Password
         if (btnSaveNewPwd && inputNewPwd) {

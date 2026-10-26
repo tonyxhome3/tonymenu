@@ -426,9 +426,9 @@
         <p class="status-sub" id="status-sub">กรุณารอสักครู่ / Please wait a moment</p>
         
         <div class="status-actions" id="status-actions" style="display: none;">
-          <a href="admin.html" class="btn-action btn-primary">
+          <button type="button" class="btn-action btn-primary" id="btn-empty-admin-gate">
             📷 ไปที่หน้าจัดการเพื่อเพิ่มรูปภาพ / Open Admin
-          </a>
+          </button>
           <button id="btn-add-sample-direct" class="btn-action btn-secondary" type="button">
             ✨ เพิ่มตัวอย่างรูปเมนู 3 หน้าทันที / Add Sample Pages
           </button>
@@ -437,7 +437,7 @@
     </main>
 
     <footer id="site-footer">
-      <a href="admin.html" class="footer-admin-link" id="btn-admin-gate">⚙️ Menu Admin / ระบบจัดการเมนู</a>
+      <button type="button" class="footer-admin-link" id="btn-admin-gate" style="background: none; border: none; cursor: pointer;">⚙️ Menu Admin / ระบบจัดการเมนู</button>
     </footer>
 
     <!-- Password Modal -->
@@ -951,12 +951,16 @@
         // --- 5-TAP ADMIN GATEWAY & PASSWORD PROTECTION ---
         var DEFAULT_ADMIN_PASSWORD = "1234";
         var adminGateBtn = document.getElementById("btn-admin-gate");
+        var emptyAdminBtn = document.getElementById("btn-empty-admin-gate");
         var pwdModal = document.getElementById("pwd-modal");
         var pwdToast = document.getElementById("pwd-toast");
         var pwdForm = document.getElementById("pwd-form");
         var pwdInput = document.getElementById("admin-pwd-input");
         var pwdError = document.getElementById("pwd-error");
         var pwdCancelBtn = document.getElementById("pwd-cancel-btn");
+
+        // Always reset admin authorization when viewing customer menu page
+        sessionStorage.removeItem("gm_admin_auth");
 
         var tapCount = 0;
         var tapTimer = null;
@@ -969,17 +973,20 @@
           clearTimeout(toastTimer);
           toastTimer = setTimeout(function() {
             pwdToast.style.display = "none";
-          }, 2200);
+          }, 2400);
         }
 
         function handleAdminGateClick(e) {
-          if (e) e.preventDefault();
+          if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
           tapCount++;
           clearTimeout(tapTimer);
           
           if (tapCount < 5) {
             var remaining = 5 - tapCount;
-            showToast("กดอีก " + remaining + " ครั้งเพื่อใส่รหัสผ่าน (" + tapCount + "/5)");
+            showToast("🔒 กดอีก " + remaining + " ครั้ง เพื่อเปิดช่องใส่รหัสผ่าน (" + tapCount + "/5)");
             tapTimer = setTimeout(function() {
               tapCount = 0;
               if (pwdToast) pwdToast.style.display = "none";
@@ -996,7 +1003,11 @@
           adminGateBtn.addEventListener("click", handleAdminGateClick);
         }
 
-        // Also intercept any other admin link if clicked (e.g. status-actions admin link)
+        if (emptyAdminBtn) {
+          emptyAdminBtn.addEventListener("click", handleAdminGateClick);
+        }
+
+        // Also intercept any other admin link if clicked
         var otherAdminLinks = document.querySelectorAll('a[href="admin.html"]');
         otherAdminLinks.forEach(function(link) {
           link.addEventListener("click", handleAdminGateClick);
