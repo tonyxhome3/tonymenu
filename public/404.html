@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script>
+      (function() {
+        var path = (window.location.pathname || "").toLowerCase();
+        if (path.indexOf("admin") !== -1) {
+          window.location.replace("admin.html");
+        } else {
+          window.location.replace("index.html");
+        }
+      })();
+    </script>
+  </head>
+  <body style="background:#11141a; color:#f9fafb; font-family:sans-serif; text-align:center; padding:50px 20px;">
+    <h2>กำลังเปิดหน้าระบบจัดการ... / Redirecting...</h2>
+    <p style="color:#9ca3af; margin-top:10px;">หากระบบไม่เปลี่ยนหน้าอัตโนมัติ <a href="admin.html" style="color:#e5a93c;">คลิกที่นี่เพื่อไปหน้า Admin</a> หรือ <a href="index.html" style="color:#e5a93c;">กลับหน้าเมนู</a></p>
+  </body>
+</html>

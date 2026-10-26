@@ -1367,15 +1367,11 @@
         var pwdChangeStatus = document.getElementById("pwd-change-status");
 
         function checkAuth() {
-          var isAuth = sessionStorage.getItem("gm_admin_auth") === "true";
-          if (!isAuth) {
-            if (lockScreen) lockScreen.style.display = "flex";
-            if (lockPwd) {
-              lockPwd.value = "";
-              setTimeout(function() { lockPwd.focus(); }, 100);
-            }
-          } else {
-            if (lockScreen) lockScreen.style.display = "none";
+          // Always enforce lock screen on page entry to guarantee password protection
+          if (lockScreen) lockScreen.style.display = "flex";
+          if (lockPwd) {
+            lockPwd.value = "";
+            setTimeout(function() { lockPwd.focus(); }, 100);
           }
         }
 
