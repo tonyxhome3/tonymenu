@@ -1,0 +1,813 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>Our Menu</title>
+    <style>
+      :root {
+        --bg-color: #0f1115;
+        --card-bg: #1a1d24;
+        --text-main: #f3f4f6;
+        --text-muted: #9ca3af;
+        --border-color: #2e3340;
+        --accent: #e5a93c;
+        --accent-hover: #d4952b;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", "Thonburi", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
+        margin: 0;
+        overflow-x: hidden;
+      }
+
+      header {
+        width: 100%;
+        max-width: 900px;
+        padding: 16px 20px 12px;
+        text-align: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(15, 17, 21, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .restaurant-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        color: var(--text-main);
+      }
+
+      .page-indicator {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+
+      main {
+        width: 100%;
+        max-width: 900px;
+        padding: 12px 10px 40px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .status-box {
+        text-align: center;
+        padding: 40px 20px;
+        background: var(--card-bg);
+        border: 1px dashed var(--border-color);
+        border-radius: 16px;
+        margin: 20px 12px;
+        width: calc(100% - 24px);
+        max-width: 520px;
+        align-self: center;
+      }
+
+      .spinner {
+        width: 36px;
+        height: 36px;
+        border: 3px solid rgba(255, 255, 255, 0.15);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        margin: 0 auto 16px;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .status-text {
+        font-size: 1.15rem;
+        font-weight: 700;
+        line-height: 1.4;
+        color: var(--text-main);
+      }
+
+      .status-sub {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        margin-top: 8px;
+        line-height: 1.5;
+      }
+
+      .status-actions {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+      }
+
+      .btn-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        transition: transform 0.1s ease, background 0.15s ease;
+      }
+
+      .btn-action:active {
+        transform: scale(0.98);
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #11141a;
+      }
+
+      .btn-primary:hover {
+        background: var(--accent-hover);
+      }
+
+      .btn-secondary {
+        background: #2a303d;
+        color: #e5e7eb;
+        border: 1px solid var(--border-color);
+      }
+
+      .btn-secondary:hover {
+        background: #353d4e;
+      }
+
+      .menu-card {
+        width: 100%;
+        background: var(--card-bg);
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.2s ease;
+      }
+
+      .menu-card:active {
+        transform: scale(0.99);
+      }
+
+      .menu-img {
+        width: 100%;
+        height: auto;
+        display: block;
+        vertical-align: middle;
+      }
+
+      .img-fallback {
+        display: none;
+        padding: 40px 20px;
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        background: #232731;
+      }
+
+      .menu-card.load-failed .menu-img {
+        display: none;
+      }
+
+      .menu-card.load-failed .img-fallback {
+        display: block;
+      }
+
+      /* Fullscreen Lightbox Viewer */
+      #modal-viewer {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.96);
+        z-index: 1000;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+
+      #modal-viewer.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-close-btn {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        z-index: 1010;
+        background: rgba(30, 33, 40, 0.85);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+
+      .modal-close-btn:active {
+        background: rgba(60, 65, 80, 0.9);
+      }
+
+      .modal-hint {
+        position: absolute;
+        bottom: 18px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1010;
+        background: rgba(0, 0, 0, 0.6);
+        color: rgba(255, 255, 255, 0.8);
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        pointer-events: none;
+        text-align: center;
+        white-space: nowrap;
+      }
+
+      .modal-viewport {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      #modal-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transform-origin: center center;
+        will-change: transform;
+        transition: transform 0.05s ease-out;
+      }
+
+      footer {
+        margin-top: auto;
+        padding: 20px 10px 30px;
+        text-align: center;
+      }
+
+      .footer-admin-link {
+        font-size: 0.8rem;
+        color: #4b5563;
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        transition: color 0.15s ease;
+      }
+
+      .footer-admin-link:hover {
+        color: #9ca3af;
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header id="site-header">
+      <h1 class="restaurant-title" id="restaurant-title">Our Menu</h1>
+      <div class="page-indicator" id="header-subtitle"></div>
+    </header>
+
+    <main id="menu-container">
+      <div id="status-container" class="status-box">
+        <div class="spinner" id="status-spinner"></div>
+        <p class="status-text" id="status-text">กำลังโหลดเมนู... / Loading menu...</p>
+        <p class="status-sub" id="status-sub">กรุณารอสักครู่ / Please wait a moment</p>
+        
+        <div class="status-actions" id="status-actions" style="display: none;">
+          <a href="admin.html" class="btn-action btn-primary">
+            📷 ไปที่หน้าจัดการเพื่อเพิ่มรูปภาพ / Open Admin
+          </a>
+          <button id="btn-add-sample-direct" class="btn-action btn-secondary" type="button">
+            ✨ เพิ่มตัวอย่างรูปเมนู 3 หน้าทันที / Add Sample Pages
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <footer id="site-footer">
+      <a href="admin.html" class="footer-admin-link">⚙️ Menu Admin / ระบบจัดการเมนู</a>
+    </footer>
+
+    <!-- Fullscreen Pinch-Zoom Modal -->
+    <div id="modal-viewer" role="dialog" aria-modal="true" aria-label="Menu Fullscreen Viewer">
+      <button class="modal-close-btn" id="modal-close-btn" aria-label="Close">✕</button>
+      <div class="modal-viewport" id="modal-viewport">
+        <img id="modal-img" alt="Menu Fullscreen" />
+      </div>
+      <div class="modal-hint">Pinch or double tap to zoom • Tap ✕ to close</div>
+    </div>
+
+    <script>
+      (function() {
+        // --- CUSTOMER PAGE CONFIGURATION ---
+        var RESTAURANT_NAME = "Our Menu";
+
+        var container = document.getElementById("menu-container");
+        var statusContainer = document.getElementById("status-container");
+        var statusSpinner = document.getElementById("status-spinner");
+        var statusText = document.getElementById("status-text");
+        var statusSub = document.getElementById("status-sub");
+        var statusActions = document.getElementById("status-actions");
+        var titleElem = document.getElementById("restaurant-title");
+        var subtitleElem = document.getElementById("header-subtitle");
+        var btnAddSample = document.getElementById("btn-add-sample-direct");
+
+        titleElem.textContent = RESTAURANT_NAME;
+
+        // --- INDEXEDDB HELPER FOR LOCAL / OFFLINE IMAGES ---
+        function getDB() {
+          return new Promise(function(resolve, reject) {
+            var req = indexedDB.open("RestaurantMenuDB", 1);
+            req.onupgradeneeded = function(e) {
+              var db = e.target.result;
+              if (!db.objectStoreNames.contains("store")) {
+                db.createObjectStore("store");
+              }
+            };
+            req.onsuccess = function(e) { resolve(e.target.result); };
+            req.onerror = function(e) { reject(e.target.error); };
+          });
+        }
+
+        function getLocalImages() {
+          return getDB().then(function(db) {
+            return new Promise(function(resolve) {
+              var tx = db.transaction("store", "readonly");
+              var store = tx.objectStore("store");
+              var req = store.get("local_images");
+              req.onsuccess = function() {
+                resolve(req.result || []);
+              };
+              req.onerror = function() {
+                resolve([]);
+              };
+            });
+          }).catch(function() {
+            try {
+              return JSON.parse(localStorage.getItem("gm_local_images") || "[]");
+            } catch(e) {
+              return [];
+            }
+          });
+        }
+
+        function saveLocalImages(list) {
+          return getDB().then(function(db) {
+            return new Promise(function(resolve, reject) {
+              var tx = db.transaction("store", "readwrite");
+              var store = tx.objectStore("store");
+              var req = store.put(list, "local_images");
+              req.onsuccess = function() { resolve(); };
+              req.onerror = function(e) { reject(e.target.error); };
+            });
+          }).catch(function() {
+            try {
+              localStorage.setItem("gm_local_images", JSON.stringify(list));
+            } catch(e) {}
+          });
+        }
+
+        function showMessage(mainMsg, subMsg, showLoading, showActions) {
+          if (!statusContainer) return;
+          statusContainer.style.display = "block";
+          if (statusSpinner) {
+            statusSpinner.style.display = showLoading ? "block" : "none";
+          }
+          if (statusText) statusText.textContent = mainMsg;
+          if (statusSub) statusSub.textContent = subMsg || "";
+          if (statusActions) {
+            statusActions.style.display = showActions ? "flex" : "none";
+          }
+        }
+
+        function hideStatus() {
+          if (statusContainer) {
+            statusContainer.style.display = "none";
+          }
+        }
+
+        function renderImages(images) {
+          // Remove existing cards
+          var existingCards = container.querySelectorAll(".menu-card");
+          existingCards.forEach(function(c) { c.remove(); });
+
+          if (!images || images.length === 0) {
+            showMessage(
+              "Menu coming soon / กำลังเตรียมเมนูอาหาร",
+              "ยังไม่มีรูปภาพเมนูในระบบ สำหรับเจ้าของร้านสามารถกดปุ่มด้านล่างเพื่อเพิ่มรูปภาพได้เลย / No menu pages uploaded yet.",
+              false,
+              true
+            );
+            return;
+          }
+
+          hideStatus();
+          subtitleElem.textContent = images.length + " page" + (images.length > 1 ? "s" : "");
+
+          images.forEach(function(imgPath, index) {
+            var card = document.createElement("div");
+            card.className = "menu-card";
+            card.setAttribute("role", "button");
+            card.setAttribute("tabindex", "0");
+            card.setAttribute("aria-label", "Menu page " + (index + 1) + " (Tap to view fullscreen)");
+
+            var img = document.createElement("img");
+            img.className = "menu-img";
+            img.setAttribute("loading", "lazy");
+            img.setAttribute("decoding", "async");
+            img.alt = RESTAURANT_NAME + " - Page " + (index + 1);
+
+            // If base64 data url, use as is. If relative file path, append cache buster
+            if (imgPath.indexOf("data:") === 0) {
+              img.src = imgPath;
+            } else {
+              img.src = imgPath + (imgPath.indexOf("?") === -1 ? "?t=" : "&t=") + Date.now();
+            }
+
+            var fallback = document.createElement("div");
+            fallback.className = "img-fallback";
+            fallback.innerHTML = "<p>Menu page " + (index + 1) + "</p><p style='margin-top:6px; font-size:0.8rem;'>Unable to load image / ไม่สามารถโหลดรูปได้</p>";
+
+            img.onerror = function() {
+              card.classList.add("load-failed");
+            };
+
+            card.appendChild(img);
+            card.appendChild(fallback);
+
+            card.addEventListener("click", function() {
+              if (!card.classList.contains("load-failed")) {
+                openModal(img.src, index, images.length);
+              }
+            });
+
+            card.addEventListener("keydown", function(e) {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                if (!card.classList.contains("load-failed")) {
+                  openModal(img.src, index, images.length);
+                }
+              }
+            });
+
+            container.appendChild(card);
+          });
+        }
+
+        // --- SAMPLE MENU GENERATOR (CANVAS) ---
+        function generateSampleImage(title, category, items, bgGradient) {
+          var canvas = document.createElement("canvas");
+          canvas.width = 1200;
+          canvas.height = 1700;
+          var ctx = canvas.getContext("2d");
+
+          // Background
+          var grad = ctx.createLinearGradient(0, 0, 1200, 1700);
+          grad.addColorStop(0, bgGradient[0]);
+          grad.addColorStop(1, bgGradient[1]);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, 1200, 1700);
+
+          // Border frame
+          ctx.strokeStyle = "rgba(229, 169, 60, 0.4)";
+          ctx.lineWidth = 6;
+          ctx.strokeRect(36, 36, 1128, 1628);
+
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(48, 48, 1104, 1604);
+
+          // Header
+          ctx.fillStyle = "#e5a93c";
+          ctx.font = "bold 44px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("★ RESTAURANT & CAFE ★", 600, 120);
+
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 68px sans-serif";
+          ctx.fillText(title, 600, 200);
+
+          ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+          ctx.font = "32px sans-serif";
+          ctx.fillText(category, 600, 255);
+
+          // Decorative divider
+          ctx.strokeStyle = "#e5a93c";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(350, 290);
+          ctx.lineTo(850, 290);
+          ctx.stroke();
+
+          // Menu Items
+          var startY = 380;
+          var rowHeight = 210;
+
+          items.forEach(function(item, idx) {
+            var y = startY + (idx * rowHeight);
+
+            // Card background
+            ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+            ctx.beginPath();
+            ctx.roundRect(80, y - 50, 1040, 175, 16);
+            ctx.fill();
+
+            // Emoji / Icon
+            ctx.font = "52px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(item.icon, 110, y + 25);
+
+            // Item Name
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 40px sans-serif";
+            ctx.fillText(item.nameTh, 200, y + 10);
+
+            // English subtitle
+            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+            ctx.font = "28px sans-serif";
+            ctx.fillText(item.nameEn, 200, y + 55);
+
+            // Price
+            ctx.fillStyle = "#e5a93c";
+            ctx.font = "bold 46px sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText(item.price, 1080, y + 35);
+          });
+
+          // Footer
+          ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+          ctx.font = "26px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("Prices include VAT • บริการด้วยใจ สะอาด อร่อย สดใหม่ทุกวัน", 600, 1590);
+
+          return canvas.toDataURL("image/jpeg", 0.85);
+        }
+
+        function createDemoSampleMenu() {
+          var p1 = generateSampleImage(
+            "APPETIZERS & DRINKS",
+            "อาหารทานเล่น และเครื่องดื่มสดชื่น",
+            [
+              { icon: "🥟", nameTh: "ปอเปี๊ยะทอดสูตรโบราณ", nameEn: "Crispy Spring Rolls", price: "฿95" },
+              { icon: "🍗", nameTh: "ปีกไก่ทอดซอสต้มยำ", nameEn: "Spicy Tom Yum Wings", price: "฿145" },
+              { icon: "🧋", nameTh: "ชาไทยเย็นต้นตำรับ", nameEn: "Authentic Thai Iced Tea", price: "฿65" },
+              { icon: "🥥", nameTh: "น้ำมะพร้าวน้ำหอมแท้", nameEn: "Fresh Coconut Juice", price: "฿70" },
+              { icon: "🍋", nameTh: "ชามะนาวน้ำผึ้งป่า", nameEn: "Honey Lemon Iced Tea", price: "฿75" }
+            ],
+            ["#181c24", "#0f1115"]
+          );
+
+          var p2 = generateSampleImage(
+            "CHEF'S SIGNATURE",
+            "อาหารจานหลัก ยอดนิยม",
+            [
+              { icon: "🦐", nameTh: "ผัดไทยกุ้งแม่น้ำสด", nameEn: "Pad Thai with Giant River Prawn", price: "฿220" },
+              { icon: "🥘", nameTh: "แกงเขียวหวานไก่โรตี", nameEn: "Green Curry with Crispy Roti", price: "฿185" },
+              { icon: "🥩", nameTh: "มัสมั่นเนื้อน่องลายตุ๋น", nameEn: "Slow-Cooked Beef Massaman", price: "฿260" },
+              { icon: "🍜", nameTh: "ข้าวซอยไก่แม่สาย", nameEn: "Northern Thai Khao Soi Chicken", price: "฿150" },
+              { icon: "🍳", nameTh: "กะเพราเนื้อสับไข่ดาวกรอบ", nameEn: "Wagyu Holy Basil Stir-fry", price: "฿165" }
+            ],
+            ["#221d19", "#110f0e"]
+          );
+
+          var p3 = generateSampleImage(
+            "DESSERTS & SPECIALS",
+            "ของหวาน และเมนูแนะนำประจำฤดูกาล",
+            [
+              { icon: "🥭", nameTh: "ข้าวเหนียวมะม่วงอกร่องทอง", nameEn: "Mango Sticky Rice with Coconut", price: "฿140" },
+              { icon: "🥣", nameTh: "บัวลอยเผือกมะพร้าวอ่อน", nameEn: "Taro Balls in Coconut Cream", price: "฿75" },
+              { icon: "🍧", nameTh: "ทับทิมกรอบน้ำกะทิอบควันเทียน", nameEn: "Water Chestnut Rubies in Ice", price: "฿65" },
+              { icon: "🍨", nameTh: "ไอศกรีมกะทิสดเครื่องแน่น", nameEn: "Fresh Coconut Ice Cream", price: "฿85" },
+              { icon: "🥞", nameTh: "โรตีกรอบราดนมข้นหวาน", nameEn: "Sweet Crispy Roti Pancake", price: "฿60" }
+            ],
+            ["#191e24", "#0e1319"]
+          );
+
+          return [p1, p2, p3];
+        }
+
+        if (btnAddSample) {
+          btnAddSample.addEventListener("click", function() {
+            showMessage("กำลังสร้างตัวอย่างรูปเมนู...", "Generating 3 menu pages...", true, false);
+            setTimeout(function() {
+              var samples = createDemoSampleMenu();
+              saveLocalImages(samples).then(function() {
+                renderImages(samples);
+              });
+            }, 300);
+          });
+        }
+
+        // Global uncaught error display
+        window.addEventListener("error", function(e) {
+          getLocalImages().then(function(localImgs) {
+            if (localImgs && localImgs.length > 0) {
+              renderImages(localImgs);
+            } else {
+              showMessage(
+                "Menu coming soon / กำลังเตรียมเมนู",
+                "ยังไม่มีรูปภาพเมนูในระบบ / No menu pages uploaded yet.",
+                false,
+                true
+              );
+            }
+          });
+        });
+
+        // Fetch menu.json with fallback to local stored images
+        try {
+          var menuUrl = "menu.json?t=" + Date.now();
+          fetch(menuUrl, { cache: "no-store" })
+            .then(function(res) {
+              if (!res.ok) throw new Error("HTTP " + res.status);
+              return res.json();
+            })
+            .then(function(data) {
+              if (data && Array.isArray(data.images) && data.images.length > 0) {
+                renderImages(data.images);
+              } else {
+                // If menu.json is empty, check if owner added images in local preview
+                getLocalImages().then(function(localImgs) {
+                  if (localImgs && localImgs.length > 0) {
+                    renderImages(localImgs);
+                  } else {
+                    renderImages([]);
+                  }
+                });
+              }
+            })
+            .catch(function() {
+              getLocalImages().then(function(localImgs) {
+                if (localImgs && localImgs.length > 0) {
+                  renderImages(localImgs);
+                } else {
+                  renderImages([]);
+                }
+              });
+            });
+        } catch (err) {
+          getLocalImages().then(function(localImgs) {
+            renderImages(localImgs);
+          });
+        }
+
+        // --- FULLSCREEN VIEWER LOGIC ---
+        var modal = document.getElementById("modal-viewer");
+        var modalImg = document.getElementById("modal-img");
+        var closeBtn = document.getElementById("modal-close-btn");
+        var viewport = document.getElementById("modal-viewport");
+
+        var scale = 1;
+        var posX = 0;
+        var posY = 0;
+        var startDist = 0;
+        var startScale = 1;
+        var startX = 0;
+        var startY = 0;
+        var isDragging = false;
+        var lastTapTime = 0;
+
+        function updateTransform() {
+          modalImg.style.transform = "translate(" + posX + "px, " + posY + "px) scale(" + scale + ")";
+        }
+
+        function resetZoom() {
+          scale = 1;
+          posX = 0;
+          posY = 0;
+          updateTransform();
+        }
+
+        function openModal(src, idx, total) {
+          resetZoom();
+          modalImg.src = src;
+          modal.classList.add("active");
+          document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+          modal.classList.remove("active");
+          modalImg.src = "";
+          document.body.style.overflow = "";
+          resetZoom();
+        }
+
+        closeBtn.addEventListener("click", function(e) {
+          e.stopPropagation();
+          closeModal();
+        });
+
+        window.addEventListener("keydown", function(e) {
+          if (e.key === "Escape" && modal.classList.contains("active")) {
+            closeModal();
+          }
+        });
+
+        // Touch Pinch & Pan & Double Tap
+        function getDistance(touches) {
+          var dx = touches[0].clientX - touches[1].clientX;
+          var dy = touches[0].clientY - touches[1].clientY;
+          return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        viewport.addEventListener("touchstart", function(e) {
+          if (e.touches.length === 2) {
+            e.preventDefault();
+            startDist = getDistance(e.touches);
+            startScale = scale;
+          } else if (e.touches.length === 1) {
+            var now = Date.now();
+            if (now - lastTapTime < 300) {
+              e.preventDefault();
+              if (scale > 1.2) {
+                resetZoom();
+              } else {
+                scale = 2.4;
+                posX = 0;
+                posY = 0;
+                updateTransform();
+              }
+              lastTapTime = 0;
+              return;
+            }
+            lastTapTime = now;
+
+            if (scale > 1) {
+              isDragging = true;
+              startX = e.touches[0].clientX - posX;
+              startY = e.touches[0].clientY - posY;
+            }
+          }
+        }, { passive: false });
+
+        viewport.addEventListener("touchmove", function(e) {
+          if (e.touches.length === 2) {
+            e.preventDefault();
+            var currentDist = getDistance(e.touches);
+            if (startDist > 0) {
+              var newScale = startScale * (currentDist / startDist);
+              scale = Math.min(Math.max(newScale, 0.8), 4.5);
+              updateTransform();
+            }
+          } else if (e.touches.length === 1 && isDragging && scale > 1) {
+            e.preventDefault();
+            posX = e.touches[0].clientX - startX;
+            posY = e.touches[0].clientY - startY;
+            updateTransform();
+          }
+        }, { passive: false });
+
+        viewport.addEventListener("touchend", function(e) {
+          if (e.touches.length < 2) {
+            startDist = 0;
+          }
+          if (e.touches.length === 0) {
+            isDragging = false;
+            if (scale < 1) {
+              resetZoom();
+            }
+          }
+        });
+
+        // Tap on modal backdrop (when not zoomed) to close
+        viewport.addEventListener("click", function(e) {
+          if (e.target === viewport && scale <= 1.05) {
+            closeModal();
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

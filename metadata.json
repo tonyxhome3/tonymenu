@@ -1,0 +1,6 @@
+{
+  "name": "Static Restaurant Menu & GitHub Admin",
+  "description": "Zero-dependency static mobile-friendly restaurant menu with private GitHub Pages admin panel for reordering and uploading images directly via GitHub API.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

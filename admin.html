@@ -1,0 +1,1229 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Menu Admin / ระบบจัดการเมนู (ไม่ต้องใช้ Token)</title>
+    <style>
+      :root {
+        --bg-color: #11141a;
+        --panel-bg: #1a1e27;
+        --card-bg: #222733;
+        --card-border: #323949;
+        --text-main: #f9fafb;
+        --text-muted: #9ca3af;
+        --accent: #e5a93c;
+        --accent-hover: #d4952b;
+        --success: #10b981;
+        --success-hover: #059669;
+        --danger: #ef4444;
+        --danger-hover: #dc2626;
+        --warning: #f59e0b;
+        --warning-bg: rgba(245, 158, 11, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans Thai", "Thonburi", sans-serif;
+        background-color: var(--bg-color);
+        color: var(--text-main);
+        min-height: 100vh;
+        padding: 16px 12px 60px;
+        line-height: 1.5;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 860px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      /* Top navigation bar */
+      .top-nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--panel-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 12px 18px;
+      }
+
+      .top-nav a {
+        color: #93c5fd;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .top-nav a:hover {
+        text-decoration: underline;
+      }
+
+      /* Header */
+      header {
+        background: var(--panel-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .header-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .header-badge {
+        font-size: 0.75rem;
+        background: rgba(16, 185, 129, 0.2);
+        color: #6ee7b7;
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 600;
+      }
+
+      .header-desc {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+      }
+
+      /* Tip banner */
+      .notice-box {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 10px;
+        padding: 14px 18px;
+        font-size: 0.875rem;
+        color: #a7f3d0;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      /* Panels */
+      .panel {
+        background: var(--panel-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .panel-title {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .panel-desc {
+        font-size: 0.825rem;
+        color: var(--text-muted);
+      }
+
+      /* Buttons */
+      button, .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: background-color 0.15s ease, opacity 0.15s ease, transform 0.05s ease;
+        min-height: 42px;
+        text-decoration: none;
+      }
+
+      button:active, .btn:active {
+        transform: scale(0.98);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-primary {
+        background: var(--accent);
+        color: #11141a;
+      }
+
+      .btn-primary:hover:not(:disabled) {
+        background: var(--accent-hover);
+      }
+
+      .btn-success {
+        background: var(--success);
+        color: #fff;
+      }
+
+      .btn-success:hover:not(:disabled) {
+        background: var(--success-hover);
+      }
+
+      .btn-danger {
+        background: rgba(239, 68, 68, 0.2);
+        color: #fca5a5;
+        border: 1px solid rgba(239, 68, 68, 0.4);
+      }
+
+      .btn-danger:hover:not(:disabled) {
+        background: var(--danger);
+        color: #fff;
+      }
+
+      .btn-secondary {
+        background: #282f3d;
+        color: #e5e7eb;
+        border: 1px solid var(--card-border);
+      }
+
+      .btn-secondary:hover:not(:disabled) {
+        background: #323b4c;
+      }
+
+      .btn-outline {
+        background: transparent;
+        color: var(--text-muted);
+        border: 1px solid var(--card-border);
+      }
+
+      .btn-outline:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+      }
+
+      .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        min-height: 34px;
+      }
+
+      .btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+
+      /* Status banners */
+      .status-banner {
+        display: none;
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        line-height: 1.4;
+      }
+
+      .status-banner.show {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .status-banner.success {
+        background: rgba(16, 185, 129, 0.15);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #6ee7b7;
+      }
+
+      .status-banner.error {
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        color: #fca5a5;
+      }
+
+      .status-banner.warning {
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        color: #fde68a;
+      }
+
+      /* Upload dropzone */
+      .dropzone {
+        border: 2px dashed #3b4252;
+        border-radius: 12px;
+        padding: 32px 16px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.02);
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+      }
+
+      .dropzone:hover, .dropzone.dragover {
+        border-color: var(--accent);
+        background: rgba(229, 169, 60, 0.08);
+      }
+
+      .dropzone-icon {
+        font-size: 2.6rem;
+        margin-bottom: 8px;
+      }
+
+      .dropzone-text {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #f3f4f6;
+      }
+
+      .dropzone-sub {
+        font-size: 0.825rem;
+        color: var(--text-muted);
+        margin-top: 6px;
+      }
+
+      /* Sticky unsaved bar */
+      .unsaved-bar {
+        display: none;
+        position: sticky;
+        top: 10px;
+        z-index: 100;
+        background: #92400e;
+        border: 1px solid #d97706;
+        color: #fef3c7;
+        padding: 12px 18px;
+        border-radius: 10px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .unsaved-bar.show {
+        display: flex;
+      }
+
+      /* Menu image list */
+      .menu-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .menu-item-row {
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        position: relative;
+        user-select: none;
+        transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+      }
+
+      .menu-item-row.dragging {
+        opacity: 0.4;
+        border-color: var(--accent);
+      }
+
+      .menu-item-row.drag-over {
+        border-top: 3px solid var(--accent);
+      }
+
+      .drag-handle {
+        cursor: grab;
+        padding: 8px 6px;
+        color: var(--text-muted);
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        touch-action: none;
+      }
+
+      .drag-handle:active {
+        cursor: grabbing;
+      }
+
+      .item-badge {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--accent);
+        min-width: 28px;
+        text-align: center;
+      }
+
+      .thumb-wrap {
+        width: 72px;
+        height: 72px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #11141a;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .thumb-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .item-info {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .item-filename {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        word-break: break-all;
+      }
+
+      .item-subtext {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .item-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .btn-icon {
+        width: 38px;
+        height: 38px;
+        padding: 0;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 44px 20px;
+        color: var(--text-muted);
+        background: var(--card-bg);
+        border: 1px dashed var(--card-border);
+        border-radius: 12px;
+      }
+
+      /* Step Card */
+      .step-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--card-border);
+        border-radius: 10px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .step-header {
+        font-weight: 700;
+        color: #fff;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .step-number {
+        background: var(--accent);
+        color: #11141a;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 800;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Top Navigation -->
+      <div class="top-nav">
+        <a href="index.html">⬅️ ดูหน้าเมนูลูกค้า / View Customer Menu</a>
+        <span style="font-size: 0.85rem; color: #a7f3d0; font-weight: 600;">✨ โหมดง่าย: ไม่ต้องใช้ Token (Zero Token)</span>
+      </div>
+
+      <!-- Unsaved Changes Alert Bar -->
+      <div id="unsaved-bar" class="unsaved-bar">
+        <div>
+          <strong>⚠️ มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก / Unsaved changes</strong>
+          <div style="font-size: 0.8rem; opacity: 0.9;">กดปุ่มบันทึกลำดับเพื่ออัปเดตหน้าเมนู / Click "Save Order" to commit changes.</div>
+        </div>
+        <div class="btn-row">
+          <button id="unsaved-save-btn" class="btn-success">💾 บันทึกเมนู / Save Order</button>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <header>
+        <div class="header-title">
+          <span>Menu Admin</span>
+          <span style="font-weight: normal; color: var(--text-muted);">/ ระบบจัดการเมนูร้านอาหาร</span>
+          <span class="header-badge">ไม่ต้องใช้ TOKEN</span>
+        </div>
+        <div class="header-desc">
+          เพิ่มรูปภาพ ย่อขนาดรูป จัดเรียงลำดับ และลบรูปภาพเมนูได้ทันที บันทึกข้อมูลลงในเบราว์เซอร์อัตโนมัติ โดยไม่ต้องสร้างหรือใส่รหัส GitHub Token ใดๆ ทั้งสิ้น
+        </div>
+      </header>
+
+      <!-- Tip Banner -->
+      <div class="notice-box">
+        <span style="font-size: 1.4rem;">🎉</span>
+        <div>
+          <strong>ใช้งานได้ทันทีโดยไม่ต้องตั้งค่า Token:</strong>
+          คุณสามารถเลือกไฟล์รูปเมนูจากเครื่องหรือมือถือ รูปภาพจะถูกบันทึกและแสดงที่หน้าเมนูลูกค้าทันที!
+        </div>
+      </div>
+
+      <!-- Quick Action: Sample Menu -->
+      <div class="panel" style="background: rgba(229, 169, 60, 0.06); border-color: rgba(229, 169, 60, 0.3);">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title" style="font-size: 1rem; color: #fde68a;">✨ ทดสอบระบบอย่างรวดเร็ว (Quick Test)</h2>
+            <p class="panel-desc">หากยังไม่มีไฟล์รูปเมนู กดปุ่มด้านขวาเพื่อสร้างรูปภาพเมนูตัวอย่าง 3 หน้าได้ทันที</p>
+          </div>
+          <button id="btn-add-sample" class="btn-primary btn-sm">
+            ✨ สร้างตัวอย่าง 3 หน้า / Add 3 Sample Pages
+          </button>
+        </div>
+      </div>
+
+      <!-- Upload Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">1. อัปโหลดรูปภาพเมนู / Upload Menu Images</h2>
+            <p class="panel-desc">เลือกไฟล์รูปภาพจากมือถือหรือคอมพิวเตอร์ ระบบจะย่อขนาดให้อัตโนมัติเพื่อให้โหลดไว</p>
+          </div>
+        </div>
+
+        <input type="file" id="file-input" multiple accept="image/jpeg,image/png,image/webp" style="display: none;" />
+
+        <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Drop menu images here or click to browse">
+          <div class="dropzone-icon">📷</div>
+          <div class="dropzone-text">คลิกเพื่อเลือกรูปภาพ หรือลากไฟล์มาวางที่นี่</div>
+          <div class="dropzone-sub">รองรับ JPG, PNG, WebP (เลือกหลายรูปพร้อมกันได้)</div>
+        </div>
+
+        <div id="upload-status-banner" class="status-banner"></div>
+      </div>
+
+      <!-- Menu Items & Ordering Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">2. จัดการและเรียงลำดับหน้าเมนู / Manage & Reorder</h2>
+            <p class="panel-desc">กดปุ่ม ▲ เลื่อนขึ้น หรือ ▼ เลื่อนลง (หรือลากปุ่ม ⋮⋮) เพื่อจัดเรียงลำดับหน้าเมนู</p>
+          </div>
+          <div class="btn-row">
+            <button id="btn-reload" class="btn-outline btn-sm">🔄 รีเฟรช / Refresh</button>
+            <button id="btn-save-order" class="btn-success">💾 บันทึกลำดับ / Save Order</button>
+          </div>
+        </div>
+
+        <div id="order-status-banner" class="status-banner"></div>
+
+        <div id="menu-items-container" class="menu-grid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Export & GitHub Guide Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">3. ส่งออกข้อมูลสำหรับ GitHub Pages (ฟรีและไม่ต้องใช้ Token)</h2>
+            <p class="panel-desc">วิธีนำรูปและเมนูไปใส่ใน GitHub แบบง่ายๆ เพียงแค่ลากไฟล์วางบนเว็บ GitHub</p>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-number">1</span>
+            <span>ดาวน์โหลดไฟล์ menu.json ที่จัดลำดับแล้ว</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">
+            กดปุ่มด้านล่างเพื่อบันทึกไฟล์ <code>menu.json</code> นำไปวางแทนที่ไฟล์เดิมใน GitHub Repository
+          </p>
+          <div>
+            <button id="btn-download-json" class="btn-secondary btn-sm">
+              📥 ดาวน์โหลด menu.json / Download menu.json
+            </button>
+          </div>
+        </div>
+
+        <div class="step-card">
+          <div class="step-header">
+            <span class="step-number">2</span>
+            <span>วิธีอัปโหลดไฟล์ขึ้น GitHub ด้วยการลากวาง (ไม่ต้องใช้ Token)</span>
+          </div>
+          <ol style="margin-left: 20px; font-size: 0.85rem; color: #d1d5db; line-height: 1.6;">
+            <li>เปิดหน้า Repository ของคุณในเว็บไซต์ <strong>GitHub.com</strong></li>
+            <li>กดปุ่ม <strong>Add file</strong> → เลือก <strong>Upload files</strong></li>
+            <li>ลากไฟล์รูปภาพทั้งหมดใส่ในโฟลเดอร์ <code>menu/</code> และลากไฟล์ <code>menu.json</code> วางในหน้าหลัก</li>
+            <li>กดปุ่มสีเขียว <strong>Commit changes</strong> ด้านล่างสุด</li>
+            <li>เสร็จเรียบร้อย! เมนูจะอัปเดตบน GitHub Pages ให้อัตโนมัติ</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function() {
+        // --- STATE ---
+        var currentImages = [];
+        var hasUnsavedChanges = false;
+
+        // --- DOM ELEMENTS ---
+        var fileInput = document.getElementById("file-input");
+        var dropzone = document.getElementById("dropzone");
+        var uploadStatusBanner = document.getElementById("upload-status-banner");
+
+        var menuContainer = document.getElementById("menu-items-container");
+        var btnSaveOrder = document.getElementById("btn-save-order");
+        var unsavedSaveBtn = document.getElementById("unsaved-save-btn");
+        var btnReload = document.getElementById("btn-reload");
+        var orderStatusBanner = document.getElementById("order-status-banner");
+        var unsavedBar = document.getElementById("unsaved-bar");
+        var btnAddSample = document.getElementById("btn-add-sample");
+        var btnDownloadJson = document.getElementById("btn-download-json");
+
+        // --- INDEXEDDB HELPER FOR ROBUST LOCAL STORAGE ---
+        function getDB() {
+          return new Promise(function(resolve, reject) {
+            var req = indexedDB.open("RestaurantMenuDB", 1);
+            req.onupgradeneeded = function(e) {
+              var db = e.target.result;
+              if (!db.objectStoreNames.contains("store")) {
+                db.createObjectStore("store");
+              }
+            };
+            req.onsuccess = function(e) { resolve(e.target.result); };
+            req.onerror = function(e) { reject(e.target.error); };
+          });
+        }
+
+        function getStoredImages() {
+          return getDB().then(function(db) {
+            return new Promise(function(resolve) {
+              var tx = db.transaction("store", "readonly");
+              var store = tx.objectStore("store");
+              var req = store.get("local_images");
+              req.onsuccess = function() { resolve(req.result || []); };
+              req.onerror = function() { resolve([]); };
+            });
+          }).catch(function() {
+            try {
+              return JSON.parse(localStorage.getItem("gm_local_images") || "[]");
+            } catch(e) {
+              return [];
+            }
+          });
+        }
+
+        function saveStoredImages(list) {
+          return getDB().then(function(db) {
+            return new Promise(function(resolve, reject) {
+              var tx = db.transaction("store", "readwrite");
+              var store = tx.objectStore("store");
+              var req = store.put(list, "local_images");
+              req.onsuccess = function() { resolve(); };
+              req.onerror = function(e) { reject(e.target.error); };
+            });
+          }).catch(function() {
+            try {
+              localStorage.setItem("gm_local_images", JSON.stringify(list));
+            } catch(e) {}
+          });
+        }
+
+        function showBanner(elem, type, message) {
+          if (!elem) return;
+          elem.className = "status-banner show " + type;
+          elem.innerHTML = message;
+        }
+
+        function hideBanner(elem) {
+          if (!elem) return;
+          elem.className = "status-banner";
+          elem.innerHTML = "";
+        }
+
+        function loadImages() {
+          getStoredImages().then(function(localList) {
+            if (localList && localList.length > 0) {
+              currentImages = localList;
+              renderMenuGrid();
+            } else {
+              // Try loading from menu.json
+              fetch("menu.json?t=" + Date.now(), { cache: "no-store" })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                  if (data && Array.isArray(data.images) && data.images.length > 0) {
+                    currentImages = data.images;
+                  } else {
+                    currentImages = [];
+                  }
+                  renderMenuGrid();
+                })
+                .catch(function() {
+                  currentImages = [];
+                  renderMenuGrid();
+                });
+            }
+          });
+        }
+
+        btnReload.addEventListener("click", function() {
+          loadImages();
+          showBanner(orderStatusBanner, "success", "รีเฟรชข้อมูลเรียบร้อยแล้ว / Refreshed");
+          setTimeout(function() { hideBanner(orderStatusBanner); }, 2500);
+        });
+
+        function setUnsavedState(hasChanges) {
+          hasUnsavedChanges = hasChanges;
+          if (hasUnsavedChanges) {
+            unsavedBar.classList.add("show");
+          } else {
+            unsavedBar.classList.remove("show");
+          }
+        }
+
+        window.addEventListener("beforeunload", function(e) {
+          if (hasUnsavedChanges) {
+            e.preventDefault();
+            e.returnValue = "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก คุณต้องการออกจากหน้านี้หรือไม่?";
+            return e.returnValue;
+          }
+        });
+
+        function saveOrderAction() {
+          btnSaveOrder.disabled = true;
+          unsavedSaveBtn.disabled = true;
+          showBanner(orderStatusBanner, "warning", "กำลังบันทึกข้อมูล... / Saving...");
+
+          saveStoredImages(currentImages)
+            .then(function() {
+              setUnsavedState(false);
+              showBanner(
+                orderStatusBanner,
+                "success",
+                "✅ บันทึกลำดับรูปภาพเรียบร้อยแล้ว! สามารถกด <a href='index.html' style='color:#93c5fd; text-decoration:underline;'>ดูหน้าเมนูลูกค้า</a> ได้ทันที"
+              );
+            })
+            .catch(function(err) {
+              showBanner(orderStatusBanner, "error", "❌ บันทึกไม่สำเร็จ: " + err.message);
+            })
+            .finally(function() {
+              btnSaveOrder.disabled = false;
+              unsavedSaveBtn.disabled = false;
+            });
+        }
+
+        btnSaveOrder.addEventListener("click", saveOrderAction);
+        unsavedSaveBtn.addEventListener("click", saveOrderAction);
+
+        // --- IMAGE RESIZING IN CANVAS (JPEG 85%, max 1600px) ---
+        dropzone.addEventListener("click", function() {
+          fileInput.click();
+        });
+
+        dropzone.addEventListener("dragover", function(e) {
+          e.preventDefault();
+          dropzone.classList.add("dragover");
+        });
+
+        dropzone.addEventListener("dragleave", function(e) {
+          e.preventDefault();
+          dropzone.classList.remove("dragover");
+        });
+
+        dropzone.addEventListener("drop", function(e) {
+          e.preventDefault();
+          dropzone.classList.remove("dragover");
+          if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFiles(e.dataTransfer.files);
+          }
+        });
+
+        fileInput.addEventListener("change", function() {
+          if (fileInput.files && fileInput.files.length > 0) {
+            handleFiles(fileInput.files);
+            fileInput.value = "";
+          }
+        });
+
+        function resizeImage(file) {
+          return new Promise(function(resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+              var img = new Image();
+              img.onload = function() {
+                var maxSide = 1600;
+                var width = img.width;
+                var height = img.height;
+
+                if (width > maxSide || height > maxSide) {
+                  var ratio = Math.min(maxSide / width, maxSide / height);
+                  width = Math.round(width * ratio);
+                  height = Math.round(height * ratio);
+                }
+
+                var canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                var ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, width, height);
+
+                var dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+                resolve(dataUrl);
+              };
+              img.onerror = function() {
+                reject(new Error("ไม่สามารถเปิดไฟล์รูปภาพได้: " + file.name));
+              };
+              img.src = e.target.result;
+            };
+            reader.onerror = function() {
+              reject(new Error("อ่านไฟล์ล้มเหลว: " + file.name));
+            };
+            reader.readAsDataURL(file);
+          });
+        }
+
+        function handleFiles(files) {
+          var validFiles = [];
+          for (var i = 0; i < files.length; i++) {
+            var f = files[i];
+            if (f.type.indexOf("image/") === 0) {
+              validFiles.push(f);
+            }
+          }
+
+          if (validFiles.length === 0) {
+            showBanner(uploadStatusBanner, "warning", "กรุณาเลือกไฟล์รูปภาพที่ถูกต้อง (JPEG, PNG, WebP)");
+            return;
+          }
+
+          showBanner(uploadStatusBanner, "warning", "กำลังย่อขนาดและบันทึก " + validFiles.length + " รูปภาพ...");
+
+          var resizePromises = validFiles.map(resizeImage);
+
+          Promise.all(resizePromises)
+            .then(function(dataUrls) {
+              currentImages = currentImages.concat(dataUrls);
+              renderMenuGrid();
+              return saveStoredImages(currentImages).then(function() {
+                setUnsavedState(false);
+                showBanner(
+                  uploadStatusBanner,
+                  "success",
+                  "✅ เพิ่มรูปภาพ " + dataUrls.length + " รูปสำเร็จแล้ว! กด <a href='index.html' style='color:#93c5fd; text-decoration:underline;'>ดูหน้าเมนูลูกค้า</a> ได้ทันที"
+                );
+              });
+            })
+            .catch(function(err) {
+              showBanner(uploadStatusBanner, "error", "❌ เกิดข้อผิดพลาด: " + err.message);
+            });
+        }
+
+        // --- SAMPLE GENERATOR ---
+        function generateSampleImage(title, category, items, bgGradient) {
+          var canvas = document.createElement("canvas");
+          canvas.width = 1200;
+          canvas.height = 1700;
+          var ctx = canvas.getContext("2d");
+
+          var grad = ctx.createLinearGradient(0, 0, 1200, 1700);
+          grad.addColorStop(0, bgGradient[0]);
+          grad.addColorStop(1, bgGradient[1]);
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, 1200, 1700);
+
+          ctx.strokeStyle = "rgba(229, 169, 60, 0.4)";
+          ctx.lineWidth = 6;
+          ctx.strokeRect(36, 36, 1128, 1628);
+
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(48, 48, 1104, 1604);
+
+          ctx.fillStyle = "#e5a93c";
+          ctx.font = "bold 44px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("★ RESTAURANT & CAFE ★", 600, 120);
+
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 68px sans-serif";
+          ctx.fillText(title, 600, 200);
+
+          ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+          ctx.font = "32px sans-serif";
+          ctx.fillText(category, 600, 255);
+
+          ctx.strokeStyle = "#e5a93c";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(350, 290);
+          ctx.lineTo(850, 290);
+          ctx.stroke();
+
+          var startY = 380;
+          var rowHeight = 210;
+
+          items.forEach(function(item, idx) {
+            var y = startY + (idx * rowHeight);
+
+            ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+            ctx.beginPath();
+            ctx.roundRect(80, y - 50, 1040, 175, 16);
+            ctx.fill();
+
+            ctx.font = "52px sans-serif";
+            ctx.textAlign = "left";
+            ctx.fillText(item.icon, 110, y + 25);
+
+            ctx.fillStyle = "#ffffff";
+            ctx.font = "bold 40px sans-serif";
+            ctx.fillText(item.nameTh, 200, y + 10);
+
+            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+            ctx.font = "28px sans-serif";
+            ctx.fillText(item.nameEn, 200, y + 55);
+
+            ctx.fillStyle = "#e5a93c";
+            ctx.font = "bold 46px sans-serif";
+            ctx.textAlign = "right";
+            ctx.fillText(item.price, 1080, y + 35);
+          });
+
+          ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+          ctx.font = "26px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText("Prices include VAT • บริการด้วยใจ สะอาด อร่อย สดใหม่ทุกวัน", 600, 1590);
+
+          return canvas.toDataURL("image/jpeg", 0.85);
+        }
+
+        btnAddSample.addEventListener("click", function() {
+          showBanner(uploadStatusBanner, "warning", "กำลังสร้างตัวอย่างเมนู 3 หน้า...");
+          setTimeout(function() {
+            var p1 = generateSampleImage(
+              "APPETIZERS & DRINKS",
+              "อาหารทานเล่น และเครื่องดื่มสดชื่น",
+              [
+                { icon: "🥟", nameTh: "ปอเปี๊ยะทอดสูตรโบราณ", nameEn: "Crispy Spring Rolls", price: "฿95" },
+                { icon: "🍗", nameTh: "ปีกไก่ทอดซอสต้มยำ", nameEn: "Spicy Tom Yum Wings", price: "฿145" },
+                { icon: "🧋", nameTh: "ชาไทยเย็นต้นตำรับ", nameEn: "Authentic Thai Iced Tea", price: "฿65" },
+                { icon: "🥥", nameTh: "น้ำมะพร้าวน้ำหอมแท้", nameEn: "Fresh Coconut Juice", price: "฿70" },
+                { icon: "🍋", nameTh: "ชามะนาวน้ำผึ้งป่า", nameEn: "Honey Lemon Iced Tea", price: "฿75" }
+              ],
+              ["#181c24", "#0f1115"]
+            );
+
+            var p2 = generateSampleImage(
+              "CHEF'S SIGNATURE",
+              "อาหารจานหลัก ยอดนิยม",
+              [
+                { icon: "🦐", nameTh: "ผัดไทยกุ้งแม่น้ำสด", nameEn: "Pad Thai with Giant River Prawn", price: "฿220" },
+                { icon: "🥘", nameTh: "แกงเขียวหวานไก่โรตี", nameEn: "Green Curry with Crispy Roti", price: "฿185" },
+                { icon: "🥩", nameTh: "มัสมั่นเนื้อน่องลายตุ๋น", nameEn: "Slow-Cooked Beef Massaman", price: "฿260" },
+                { icon: "🍜", nameTh: "ข้าวซอยไก่แม่สาย", nameEn: "Northern Thai Khao Soi Chicken", price: "฿150" },
+                { icon: "🍳", nameTh: "กะเพราเนื้อสับไข่ดาวกรอบ", nameEn: "Wagyu Holy Basil Stir-fry", price: "฿165" }
+              ],
+              ["#221d19", "#110f0e"]
+            );
+
+            var p3 = generateSampleImage(
+              "DESSERTS & SPECIALS",
+              "ของหวาน และเมนูแนะนำประจำฤดูกาล",
+              [
+                { icon: "🥭", nameTh: "ข้าวเหนียวมะม่วงอกร่องทอง", nameEn: "Mango Sticky Rice with Coconut", price: "฿140" },
+                { icon: "🥣", nameTh: "บัวลอยเผือกมะพร้าวอ่อน", nameEn: "Taro Balls in Coconut Cream", price: "฿75" },
+                { icon: "🍧", nameTh: "ทับทิมกรอบน้ำกะทิอบควันเทียน", nameEn: "Water Chestnut Rubies in Ice", price: "฿65" },
+                { icon: "🍨", nameTh: "ไอศกรีมกะทิสดเครื่องแน่น", nameEn: "Fresh Coconut Ice Cream", price: "฿85" },
+                { icon: "🥞", nameTh: "โรตีกรอบราดนมข้นหวาน", nameEn: "Sweet Crispy Roti Pancake", price: "฿60" }
+              ],
+              ["#191e24", "#0e1319"]
+            );
+
+            currentImages = [p1, p2, p3];
+            renderMenuGrid();
+            saveStoredImages(currentImages).then(function() {
+              setUnsavedState(false);
+              showBanner(uploadStatusBanner, "success", "✅ สร้างตัวอย่าง 3 หน้าเรียบร้อยแล้ว! กด <a href='index.html' style='color:#93c5fd; text-decoration:underline;'>ดูหน้าเมนูลูกค้า</a> ได้เลย");
+            });
+          }, 200);
+        });
+
+        // --- DOWNLOAD MENU.JSON ---
+        btnDownloadJson.addEventListener("click", function() {
+          var imagesPaths = currentImages.map(function(item, idx) {
+            if (item.indexOf("data:") === 0) {
+              return "menu/page-" + (idx + 1) + ".jpg";
+            }
+            return item;
+          });
+
+          var jsonContent = JSON.stringify({ images: imagesPaths }, null, 2) + "\n";
+          var blob = new Blob([jsonContent], { type: "application/json" });
+          var link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "menu.json";
+          link.click();
+          URL.revokeObjectURL(link.href);
+        });
+
+        // --- DELETE IMAGE ---
+        function deleteImage(index) {
+          if (!confirm("คุณแน่ใจหรือไม่ว่าต้องการลบหน้านี้ออกจากเมนู?")) return;
+          currentImages.splice(index, 1);
+          renderMenuGrid();
+          saveStoredImages(currentImages).then(function() {
+            setUnsavedState(false);
+            showBanner(orderStatusBanner, "success", "✅ ลบรูปภาพเรียบร้อยแล้ว");
+          });
+        }
+
+        // --- MOVE UP / MOVE DOWN ---
+        function moveImage(fromIndex, toIndex) {
+          if (toIndex < 0 || toIndex >= currentImages.length) return;
+          var item = currentImages.splice(fromIndex, 1)[0];
+          currentImages.splice(toIndex, 0, item);
+          setUnsavedState(true);
+          renderMenuGrid();
+        }
+
+        // --- RENDER MENU GRID ---
+        var dragSrcIndex = null;
+
+        function renderMenuGrid() {
+          menuContainer.innerHTML = "";
+
+          if (currentImages.length === 0) {
+            menuContainer.innerHTML = "<div class='empty-state'><p style='font-size:1.15rem; font-weight:700;'>ยังไม่มีรูปภาพเมนูในระบบ</p><p style='margin-top:8px; font-size:0.9rem;'>อัปโหลดรูปภาพด้านบน หรือกดปุ่ม 'สร้างตัวอย่าง 3 หน้า' ด้านบนได้เลยครับ</p></div>";
+            return;
+          }
+
+          currentImages.forEach(function(imgPath, index) {
+            var row = document.createElement("div");
+            row.className = "menu-item-row";
+            row.setAttribute("draggable", "true");
+            row.dataset.index = index;
+
+            // HTML5 Drag Events
+            row.addEventListener("dragstart", function(e) {
+              dragSrcIndex = index;
+              row.classList.add("dragging");
+              e.dataTransfer.effectAllowed = "move";
+              e.dataTransfer.setData("text/plain", index);
+            });
+
+            row.addEventListener("dragover", function(e) {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              row.classList.add("drag-over");
+            });
+
+            row.addEventListener("dragleave", function(e) {
+              row.classList.remove("drag-over");
+            });
+
+            row.addEventListener("drop", function(e) {
+              e.preventDefault();
+              row.classList.remove("drag-over");
+              var targetIndex = parseInt(row.dataset.index, 10);
+              if (dragSrcIndex !== null && dragSrcIndex !== targetIndex) {
+                var movedItem = currentImages.splice(dragSrcIndex, 1)[0];
+                currentImages.splice(targetIndex, 0, movedItem);
+                setUnsavedState(true);
+                renderMenuGrid();
+              }
+            });
+
+            row.addEventListener("dragend", function() {
+              row.classList.remove("dragging");
+              var allRows = menuContainer.querySelectorAll(".menu-item-row");
+              allRows.forEach(function(r) { r.classList.remove("drag-over"); });
+            });
+
+            // Handle
+            var handle = document.createElement("div");
+            handle.className = "drag-handle";
+            handle.innerHTML = "⋮⋮";
+            handle.title = "ลากเพื่อสลับลำดับ";
+
+            // Mobile Touch Drag Fallback
+            var touchStartY = 0;
+            var touchStartIdx = null;
+
+            handle.addEventListener("touchstart", function(e) {
+              touchStartIdx = index;
+              touchStartY = e.touches[0].clientY;
+              row.classList.add("dragging");
+            }, { passive: true });
+
+            handle.addEventListener("touchmove", function(e) {
+              if (touchStartIdx === null) return;
+              var touch = e.touches[0];
+              var elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+              if (!elemBelow) return;
+              var targetRow = elemBelow.closest(".menu-item-row");
+              var allRows = menuContainer.querySelectorAll(".menu-item-row");
+              allRows.forEach(function(r) { r.classList.remove("drag-over"); });
+              if (targetRow && targetRow !== row) {
+                targetRow.classList.add("drag-over");
+              }
+            }, { passive: true });
+
+            handle.addEventListener("touchend", function(e) {
+              if (touchStartIdx === null) return;
+              var touch = e.changedTouches[0];
+              var elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+              var targetRow = elemBelow ? elemBelow.closest(".menu-item-row") : null;
+              var allRows = menuContainer.querySelectorAll(".menu-item-row");
+              allRows.forEach(function(r) {
+                r.classList.remove("drag-over");
+                r.classList.remove("dragging");
+              });
+
+              if (targetRow && targetRow.dataset.index) {
+                var targetIdx = parseInt(targetRow.dataset.index, 10);
+                if (!isNaN(targetIdx) && targetIdx !== touchStartIdx) {
+                  var moved = currentImages.splice(touchStartIdx, 1)[0];
+                  currentImages.splice(targetIdx, 0, moved);
+                  setUnsavedState(true);
+                  renderMenuGrid();
+                }
+              }
+              touchStartIdx = null;
+            });
+
+            // Index Badge
+            var badge = document.createElement("div");
+            badge.className = "item-badge";
+            badge.textContent = "#" + (index + 1);
+
+            // Thumbnail
+            var thumbWrap = document.createElement("div");
+            thumbWrap.className = "thumb-wrap";
+            var thumb = document.createElement("img");
+            thumb.className = "thumb-img";
+            thumb.alt = "หน้า " + (index + 1);
+            thumb.loading = "lazy";
+
+            if (imgPath.indexOf("data:") === 0) {
+              thumb.src = imgPath;
+            } else {
+              thumb.src = imgPath + (imgPath.indexOf("?") === -1 ? "?t=" : "&t=") + Date.now();
+            }
+            thumbWrap.appendChild(thumb);
+
+            // Info
+            var info = document.createElement("div");
+            info.className = "item-info";
+            var filename = document.createElement("div");
+            filename.className = "item-filename";
+            filename.textContent = "หน้าเมนูที่ " + (index + 1);
+            var subtext = document.createElement("div");
+            subtext.className = "item-subtext";
+            subtext.textContent = (imgPath.indexOf("data:") === 0 ? "รูปภาพในเครื่อง" : imgPath) + " • ทั้งหมด " + currentImages.length + " หน้า";
+            info.appendChild(filename);
+            info.appendChild(subtext);
+
+            // Actions
+            var actions = document.createElement("div");
+            actions.className = "item-actions";
+
+            // Move Up
+            var btnUp = document.createElement("button");
+            btnUp.className = "btn-secondary btn-icon";
+            btnUp.innerHTML = "▲";
+            btnUp.title = "เลื่อนขึ้น (Move Up)";
+            btnUp.disabled = index === 0;
+            btnUp.addEventListener("click", function() {
+              moveImage(index, index - 1);
+            });
+
+            // Move Down
+            var btnDown = document.createElement("button");
+            btnDown.className = "btn-secondary btn-icon";
+            btnDown.innerHTML = "▼";
+            btnDown.title = "เลื่อนลง (Move Down)";
+            btnDown.disabled = index === currentImages.length - 1;
+            btnDown.addEventListener("click", function() {
+              moveImage(index, index + 1);
+            });
+
+            // Delete
+            var btnDel = document.createElement("button");
+            btnDel.className = "btn-danger btn-icon";
+            btnDel.innerHTML = "🗑️";
+            btnDel.title = "ลบหน้านี้ (Delete)";
+            btnDel.addEventListener("click", function() {
+              deleteImage(index);
+            });
+
+            actions.appendChild(btnUp);
+            actions.appendChild(btnDown);
+            actions.appendChild(btnDel);
+
+            row.appendChild(handle);
+            row.appendChild(badge);
+            row.appendChild(thumbWrap);
+            row.appendChild(info);
+            row.appendChild(actions);
+
+            menuContainer.appendChild(row);
+          });
+        }
+
+        // --- INIT ---
+        loadImages();
+      })();
+    </script>
+  </body>
+</html>
